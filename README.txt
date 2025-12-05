@@ -13,7 +13,7 @@ Tải Python (bản 3.10 trở lên) tại: https://www.python.org/downloads/
 
 Bước 2: Tải Source Code từ GitHub
 Mở Terminal,và chạy lệnh sau để tải mã nguồn về máy:
-   git clone {Link GitHub của bạn}
+   git clone https://github.com/Naquadah125/LTDT.git
 
 Bước 3: Tạo môi trường ảo (Virtual Environment)
 Chạy lệnh:
