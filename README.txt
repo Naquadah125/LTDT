@@ -38,9 +38,5 @@ Bước 7: Thực hành
       Bấm vào 'Từ đỉnh: ?' và chọn 1 đỉnh ở phần canvas, đây sẽ là điểm bắt đầu
       Bấm vài 'Đến đỉnh: ?' và chọn 1 đỉnh khác ở canvas, đây sẽ là điểm kết thúc 
       Gắn 1 giá trị số vào phần textBox gần nút 'THÊM' để gắn giá trị trọng số
+   Lưu File:
       Khi xong ta bấm vào nút 'lưu file' ở góc dưới phải, sẽ lưu lại biểu đồ với số liệu
-
-
-
-
-   
