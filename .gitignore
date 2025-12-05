@@ -1,1 +1,9 @@
 __pycache/
+.gitignore
+GUI/__pycache__/canvas_view.cpython-313.pyc
+GUI/__pycache__/canvas_view.cpython-314.pyc
+GUI/__pycache__/sidebar_view.cpython-313.pyc
+GUI/__pycache__/styles.cpython-314.pyc
+GUI/__pycache__/sidebar_view.cpython-314.pyc
+GUI/__pycache__/sidebar_function.cpython-314.pyc
+GUI/__pycache__/canvas_function.cpython-314.pyc
