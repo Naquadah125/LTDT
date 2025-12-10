@@ -1,10 +1,10 @@
 LÝ THUYẾT ĐỒ THỊ
 
 TO DO LIST:
- + Thêm chế độ đồ thị vô hướng
- + Thêm thuật toán dijisktra.
- + Thêm thuật toán nào liên quan đến việc đi mọi địa điểm mà không trùng nhau (có điểm bắt đầu và kết thúc)
- + Thêm việc chọn Node để đi theo thứ tự
+ + Thuật toán dijkstra (đang làm)
+ + Thêm thuật toán Traveling salesman (đang làm)
+ + Thêm việc chọn Node để đi theo thứ tự (đang làm)
+ + Thêm nút undo, mode di chuyển đỉnh. 
 
 INSTALLATION GUIDE:
 Bước 1: Cài đặt Python

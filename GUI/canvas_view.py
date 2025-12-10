@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import messagebox
 import customtkinter as ctk
 import GUI.canvas_function as cf
 
@@ -150,11 +151,17 @@ class Canvas(ctk.CTkFrame):
             cf.chinh_mau_dinh(self.drawing_area, node_name, "white")
 
     def luu_du_lieu(self):
-        # 1. Lấy thông tin nodes từ hình vẽ
+        # Lấy thông tin vertex và edges
         data = cf.lay_du_lieu_do_thi(self.drawing_area)
-        
-        # 2. Gộp thêm thông tin edges từ biến đã lưu
         data["edges"] = self.danh_sach_canh
         
-        # 3. Gọi hàm lưu file
-        cf.luu_file_json(data)
+        # Lưu 
+        ket_qua = cf.luu_file_txt(data, file_path="data_dothi.txt")
+
+        # Hiển thị menu 'thành công'
+        if ket_qua == True:
+            messagebox.showinfo("Thông báo", "Lưu file thành công!")
+        else:
+            messagebox.showerror("Lỗi", "Có lỗi xảy ra khi lưu file!")
+
+            

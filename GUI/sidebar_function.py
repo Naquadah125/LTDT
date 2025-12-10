@@ -43,3 +43,4 @@ def reset_form(sidebar_ui):
 
     # 3. Xóa ô nhập
     sidebar_ui.entry_trong_so.delete(0, "end")
+    

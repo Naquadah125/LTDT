@@ -121,12 +121,24 @@ def lay_du_lieu_do_thi(canvas_widget):
     
     return data
 
-def luu_file_json(data, file_path="data_dothi.json"):
-    """Ghi dữ liệu xuống file"""
+def luu_file_txt(data, file_path="data_dothi.txt"):
+    """Ghi dữ liệu xuống file TXT"""
     try:
         with open(file_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4, ensure_ascii=False)
-        print(f"--> Đã lưu file thành công: {file_path}")
+            f.write("Vertex\n")
+            # Ghi danh sách đỉnh: Tên X Y
+            for node in data["nodes"]:
+                # node['x'] và node['y'] là float, ta có thể ghi nguyên bản
+                line = f"{node['id']} {node['x']} {node['y']}\n"
+                f.write(line)
+            
+            # 2. Ghi phần Header cho Edges
+            f.write("Edge\n")
+            # Ghi danh sách cạnh: Nguồn Đích Trọng_số
+            for edge in data["edges"]:
+                line = f"{edge['source']} {edge['target']} {edge['weight']}\n"
+                f.write(line)
+
         return True
     except Exception as e:
         print(f"--> Lỗi lưu file: {e}")
