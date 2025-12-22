@@ -10,3 +10,5 @@ GUI/__pycache__/canvas_function.cpython-314.pyc
 /.vs/LTDT/CopilotIndices/18.0.934.24903/CodeChunks.db
 /.vs/LTDT/CopilotIndices/18.0.934.24903/CodeChunks.db-shm
 /.vs
+GUI/__pycache__/backend_client.cpython-314.pyc
+Backend/__pycache__/backend_client.cpython-314.pyc

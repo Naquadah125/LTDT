@@ -1,7 +1,7 @@
 import tkinter as tk
 import customtkinter as ctk
 from . import styles
-from . import sidebar_function 
+from . import sidebar_function
 
 class Sidebar(tk.Frame):
     def __init__(self, parent):
@@ -259,8 +259,6 @@ class Sidebar(tk.Frame):
 
         #endregion
 
-
-
     #region sidebar_function stuff
     def cap_nhat_nut_tu_dinh(self, ten_dinh):
         sidebar_function.cap_nhat_tu_dinh(self, ten_dinh)
@@ -277,6 +275,21 @@ class Sidebar(tk.Frame):
         # Cập nhật text cho nút ở thuật toán
         self.btn_run_algorithm.configure(text=f"Chạy {gia_tri_chon}")
 
+    def cap_nhat_algo_start(self, ten_dinh):
+        """Cập nhật nút Bắt đầu (Màu tím)"""
+        self.algo_start_node = ten_dinh
+        self.btn_start_node.configure(
+            text=f"Bắt đầu: {ten_dinh}", 
+            fg_color="#8E44AD"
+        )
+
+    def cap_nhat_algo_end(self, ten_dinh):
+        """Cập nhật nút Kết thúc (Màu tím)"""
+        self.algo_end_node = ten_dinh
+        self.btn_end_node.configure(
+            text=f"Kết thúc: {ten_dinh}", 
+            fg_color="#8E44AD"
+        )
     #endregion
 
 

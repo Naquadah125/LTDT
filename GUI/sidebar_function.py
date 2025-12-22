@@ -1,4 +1,4 @@
-import json
+import customtkinter as ctk
 
 def cap_nhat_tu_dinh(sidebar_ui, ten_dinh):
     """Cập nhật nút Từ Đỉnh"""
@@ -43,4 +43,26 @@ def reset_form(sidebar_ui):
 
     # 3. Xóa ô nhập
     sidebar_ui.entry_trong_so.delete(0, "end")
-    
+
+def thay_doi_ten_nut_chay(sidebar_ui, gia_tri_chon):
+    """Hàm này tự động chạy khi Dropdown thay đổi giá trị - di chuyển từ view.
+    Cập nhật text cho nút ở thuật toán."""
+    sidebar_ui.btn_run_algorithm.configure(text=f"Chạy {gia_tri_chon}")
+
+def cap_nhat_algo_start(sidebar_ui, ten_dinh):
+    """Cập nhật nút Bắt đầu (Màu tím)"""
+    sidebar_ui.algo_start_node = ten_dinh
+    sidebar_ui.btn_start_node.configure(
+        text=f"Bắt đầu: {ten_dinh}",
+        fg_color="#8E44AD"
+    )
+
+def cap_nhat_algo_end(sidebar_ui, ten_dinh):
+    """Cập nhật nút Kết thúc (Màu tím)"""
+    sidebar_ui.algo_end_node = ten_dinh
+    sidebar_ui.btn_end_node.configure(
+        text=f"Kết thúc: {ten_dinh}",
+        fg_color="#8E44AD"
+    )
+
+

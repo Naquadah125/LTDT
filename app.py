@@ -1,8 +1,11 @@
 import tkinter as tk
+from tkinter import messagebox
 import customtkinter as ctk
 import GUI.canvas_function as cf
 from GUI.canvas_view import Canvas
 from GUI.sidebar_view import Sidebar
+import GUI.sidebar_function as sf
+import Backend.backend_client as bc
 
 class App(ctk.CTk):
     def __init__(self):
@@ -33,7 +36,7 @@ class App(ctk.CTk):
             pady=20         # Cách trên dưới 20px
         )
 
-        #region MODE Button
+        #region Button
         self.sidebar_frame.btn_them_dinh.configure(
             command=self.map_frame.set_mode_them_dinh
         )
@@ -61,6 +64,22 @@ class App(ctk.CTk):
         self.sidebar_frame.btn_luu_file.configure(
             command=self.map_frame.luu_du_lieu
         )
+        
+        self.sidebar_frame.btn_start_node.configure(
+            command=lambda: self.map_frame.set_mode_chon_tu_dinh(
+                self.sidebar_frame.cap_nhat_algo_start
+            )
+        )
+
+        self.sidebar_frame.btn_end_node.configure(
+            command=lambda: self.map_frame.set_mode_chon_den_dinh(
+                self.sidebar_frame.cap_nhat_algo_end
+            )
+        )
+
+        self.sidebar_frame.btn_run_algorithm.configure(
+            command=self.xu_ly_chay_thuat_toan
+        )
         #endregion
         
     def xu_ly_them_canh(self):
@@ -83,6 +102,33 @@ class App(ctk.CTk):
         self.map_frame.reset_mau_dinh(u) # Trả A về màu trắng
         self.map_frame.reset_mau_dinh(v) # Trả B về màu trắng
         self.sidebar_frame.reset_form_nhap_lieu()
+
+    def xu_ly_chay_thuat_toan(self):
+        graph_text = self.map_frame.export_data_text()
+
+        # lấy start và end của khu vực thuật toán
+        start = self.sidebar_frame.algo_start_node
+        end = self.sidebar_frame.algo_end_node
+        algo_name = self.sidebar_frame.option_thuat_toan.get()
+
+        if start: # remove color highlight cũ
+            self.map_frame.reset_mau_dinh(start)
+        if end:
+            self.map_frame.reset_mau_dinh(end)
+
+        if algo_name == "Dijkstra":
+            # Gọi hàm backend
+            success, data = bc.goi_backend_dijkstra(start, end, graph_text)
+            
+            if success:
+                chi_phi, path_nodes = data
+                messagebox.showinfo("Kết quả", f"Chi phí: {chi_phi}\nLộ trình: {' -> '.join(path_nodes)}")
+                self.map_frame.highlight_duong_di(path_nodes)      # Vẽ highlight bên canvas
+            else:
+                messagebox.showerror("Lỗi", data)
+        
+        else:
+            messagebox.showinfo("Thông báo", "Chức năng này chưa phát triển xong.")
 
 if __name__ == "__main__":
     app = App()

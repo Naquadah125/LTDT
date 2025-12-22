@@ -58,11 +58,10 @@ Graph DocFile(string tenFile) {
     return g;
 }
 
-// tìm đường ngắn nhất(dijkstra)
-void Dijkstra(Graph& g, string p1, string p2, string fileGhi) {
-    ofstream out(fileGhi);
+// tìm đường ngắn nhất(dijkstra) - write to an ostream (used by CLI mode)
+void Dijkstra(Graph& g, string p1, string p2, ostream& out) {
     if (g.mapTen.find(p1) == g.mapTen.end() || g.mapTen.find(p2) == g.mapTen.end()) {
-        out << "Loi: Sai ten dinh"; return;
+        out << "Loi: Sai ten dinh" << endl; return;
     }
     int Start = g.mapTen[p1];
     int End = g.mapTen[p2];
@@ -84,7 +83,7 @@ void Dijkstra(Graph& g, string p1, string p2, string fileGhi) {
             }
         }
     }
-    if (Dist[End] == INF) out << "Khong Thay Duong";
+    if (Dist[End] == INF) out << "Khong Thay Duong" << endl;
     else {
         out << Dist[End] << endl;
         vector<string> Path; // path: đường đi
@@ -95,7 +94,13 @@ void Dijkstra(Graph& g, string p1, string p2, string fileGhi) {
         }
         reverse(Path.begin(), Path.end());
         for (size_t i = 0; i < Path.size(); i++) out << Path[i] << (i == Path.size() - 1 ? "" : " ");
+        out << endl;
     }
+}
+
+void Dijkstra(Graph& g, string p1, string p2, string fileGhi) {
+    ofstream out(fileGhi);
+    Dijkstra(g, p1, p2, out);
     out.close();
 }
 
@@ -129,11 +134,10 @@ void TryTSP(int u, int dem, int cp, int Start, Graph& g) {
     }
 }
 
-// chạy tsp
-void RunTSP(Graph& g, string p1, string fileGhi) {
-    ofstream out(fileGhi);
+// chạy tsp - ostream version
+void RunTSP(Graph& g, string p1, ostream& out) {
     if (g.mapTen.find(p1) == g.mapTen.end()) {
-        out << "Loi: Sai ten dinh"; return;
+        out << "Loi: Sai ten dinh" << endl; return;
     }
     int Start = g.mapTen[p1];
     MinCP = INF;
@@ -143,15 +147,41 @@ void RunTSP(Graph& g, string p1, string fileGhi) {
     Visited[Start] = true;
     TmpPath.push_back(Start);
     TryTSP(Start, 1, 0, Start, g);
-    if (MinCP == INF) out << "KhongTheDiVongQuanh";
+    if (MinCP == INF) out << "KhongTheDiVongQuanh" << endl;
     else {
         out << MinCP << endl;
         for (size_t i = 0; i < BestPath.size(); i++) out << g.mapSo[BestPath[i]] << (i == BestPath.size() - 1 ? "" : " ");
+        out << endl;
     }
+}
+
+void RunTSP(Graph& g, string p1, string fileGhi) {
+    ofstream out(fileGhi);
+    RunTSP(g, p1, out);
     out.close();
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+    if (argc > 1) {
+        string cmd = argv[1];
+        string dataFile = "data_dothi.txt";
+        if (cmd == "DIJKSTRA") {
+            if (argc < 4) return 0;
+            string p1 = argv[2];
+            string p2 = argv[3];
+            if (argc >= 5) dataFile = argv[4];
+            Graph g = DocFile(dataFile);
+            Dijkstra(g, p1, p2, cout);
+            return 0;
+        } else if (cmd == "TSP") {
+            if (argc < 3) return 0;
+            string p1 = argv[2];
+            if (argc >= 4) dataFile = argv[3];
+            Graph g = DocFile(dataFile);
+            RunTSP(g, p1, cout);
+            return 0;
+        }
+    }
 
     ofstream reset("result.txt"); reset.close();
 

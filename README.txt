@@ -25,7 +25,7 @@ Chạy lệnh:
 
 Bước 5: Cài đặt thư viện
 Chạy lệnh:
-   pip install requirements.txt
+   pip install -r requirements.txt
 
 Bước 6: Chạy ứng dụng
 Chạy lệnh:

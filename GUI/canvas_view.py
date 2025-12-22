@@ -56,22 +56,21 @@ class Canvas(ctk.CTkFrame):
 
     #endregion
 
+    #region click chuột
     def on_canvas_click(self, event):
         """Xử lý khi người dùng bấm chuột vào canvas"""
         if self.mode == "add_node":
-            # 1. Lấy tọa độ chuột
+            # Lấy tọa độ chuột
             mouse_x = event.x
             mouse_y = event.y
             
-            # 2. Tạo tên đỉnh tự động (A, B, C...)
+            # Tạo tên đỉnh
             node_name = chr(65 + self.node_count) # ASCII: 65='A', 66='B'...
             cf.tao_dinh(self.drawing_area, mouse_x, mouse_y, node_name)
-            
-            # 3. Cập nhật trạng thái
             self.node_count += 1
 
         if self.mode in ["select_source", "select_target"]:
-            # 1. Tìm đỉnh tại vị trí click
+            # Tìm đỉnh tại vị trí click
             items = self.drawing_area.find_overlapping(event.x, event.y, event.x+1, event.y+1)
             
             node_clicked = None
@@ -83,18 +82,21 @@ class Canvas(ctk.CTkFrame):
                         break
             
             if node_clicked:
-                # 2. Highlight đỉnh vừa chọn (Màu xanh lá mạ chẳng hạn)
+                # Highlight đỉnh vừa chọn
                 cf.chinh_mau_dinh(self.drawing_area, node_clicked, "#AED6F1")
 
-                # 3. GỌI CALLBACK ĐỂ BÁO VỀ SIDEBAR
+                # GỌI CALLBACK ĐỂ BÁO VỀ SIDEBAR
                 if self.callback_chon_dinh:
                     self.callback_chon_dinh(node_clicked)
 
-                # 4. Reset về chế độ bình thường sau khi chọn xong
+                # Reset về chế độ bình thường sau khi chọn xong
                 self.mode = "normal"
                 self.drawing_area.config(cursor="arrow")
                 self.callback_chon_dinh = None # Xóa nhiệm vụ
 
+    #endregion
+
+    #region Graph 
     def reset_canvas(self):
         """Xóa sạch và reset bộ đếm"""
         # 1. Xóa giao diện
@@ -134,7 +136,9 @@ class Canvas(ctk.CTkFrame):
                 self.drawing_area, 
                 x_start, y_start, 
                 x_end, y_end, 
-                trong_so
+                trong_so,
+                ten_dinh_1,
+                ten_dinh_2
             )
 
             self.danh_sach_canh.append({
@@ -150,6 +154,40 @@ class Canvas(ctk.CTkFrame):
         if node_name:
             cf.chinh_mau_dinh(self.drawing_area, node_name, "white")
 
+    def highlight_duong_di(self, list_nodes):
+        """Đổi màu các cạnh có sẵn sang màu đỏ"""
+        # Reset tất cả các cạnh về màu đen trước
+        self.drawing_area.itemconfig("day_noi", fill="black", width=2)
+
+        if len(list_nodes) < 2: return
+
+        # Duyệt qua lộ trình và đổi màu từng cạnh cụ thể
+        for i in range(len(list_nodes) - 1):
+            u = list_nodes[i]
+            v = list_nodes[i+1]
+            
+            # Tái tạo lại cái tên tag lúc mình tạo
+            tag_can_tim = f"edge_{u}_{v}"
+            
+            # Lệnh itemconfig giúp đổi thuộc tính của vật thể có sẵn
+            self.drawing_area.itemconfig(
+                tag_can_tim, 
+                fill="red",
+                width=4
+            )
+
+    def get_node_center(self, node_name):
+        """Hàm phụ tìm tọa độ tâm hình tròn dựa trên tên đỉnh (tag)"""
+        items = self.drawing_area.find_withtag(node_name)
+        
+        for item in items:
+            if self.drawing_area.type(item) == "oval":
+                coords = self.drawing_area.coords(item)
+                return (coords[0] + coords[2])/2, (coords[1] + coords[3])/2
+    
+    #endregion
+
+    #region lưu xuất dữ liệu
     def luu_du_lieu(self):
         # Lấy thông tin vertex và edges
         data = cf.lay_du_lieu_do_thi(self.drawing_area)
@@ -164,4 +202,18 @@ class Canvas(ctk.CTkFrame):
         else:
             messagebox.showerror("Lỗi", "Có lỗi xảy ra khi lưu file!")
 
-            
+    def export_data_text(self):
+        """Trả về nội dung file data_dothi.txt hiện tại dưới dạng chuỗi (không ghi ra đĩa)."""
+        data = cf.lay_du_lieu_do_thi(self.drawing_area)
+        data["edges"] = self.danh_sach_canh
+
+        lines = ["Vertex"]
+        for node in data["nodes"]:
+            lines.append(f"{node['id']} {node['x']} {node['y']}")
+        lines.append("Edge")
+        for edge in data["edges"]:
+            lines.append(f"{edge['source']} {edge['target']} {edge['weight']}")
+        return "\n".join(lines) + "\n"
+    
+    #endregion
+
