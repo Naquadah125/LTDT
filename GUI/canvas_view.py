@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, filedialog
 import customtkinter as ctk
 import GUI.canvas_function as cf
 
@@ -7,8 +7,8 @@ class Canvas(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(parent)
 
-        self.mode = "normal"  # Các mode: "normal", "add_node"
-        self.node_count = 0   # Đếm số đỉnh để đặt tên A, B, C...
+        self.mode = "normal"  # Các mode "normal", "add_node",... 
+        self.node_count = 0
 
         self.danh_sach_canh = []
         self.selected_node = None
@@ -60,7 +60,6 @@ class Canvas(ctk.CTkFrame):
     def on_canvas_click(self, event):
         """Xử lý khi người dùng bấm chuột vào canvas"""
         if self.mode == "add_node":
-            # Lấy tọa độ chuột
             mouse_x = event.x
             mouse_y = event.y
             
@@ -82,40 +81,32 @@ class Canvas(ctk.CTkFrame):
                         break
             
             if node_clicked:
-                # Highlight đỉnh vừa chọn
                 cf.chinh_mau_dinh(self.drawing_area, node_clicked, "#AED6F1")
-
-                # GỌI CALLBACK ĐỂ BÁO VỀ SIDEBAR
                 if self.callback_chon_dinh:
                     self.callback_chon_dinh(node_clicked)
 
                 # Reset về chế độ bình thường sau khi chọn xong
                 self.mode = "normal"
                 self.drawing_area.config(cursor="arrow")
-                self.callback_chon_dinh = None # Xóa nhiệm vụ
+                self.callback_chon_dinh = None
 
     #endregion
 
     #region Graph 
     def reset_canvas(self):
         """Xóa sạch và reset bộ đếm"""
-        # 1. Xóa giao diện
         cf.xoa_tat_ca(self.drawing_area)
         
-        # 2. Reset dữ liệu logic
         self.node_count = 0
         self.mode = "normal"
         self.danh_sach_canh = []
         
-        # 3. Reset con trỏ chuột
         self.drawing_area.config(cursor="arrow")
     
     def thuc_hien_noi_dinh(self, ten_dinh_1, ten_dinh_2, trong_so):
         """Tìm tọa độ 2 đỉnh và vẽ đường nối"""
-        
-        # 1. Hàm con để lấy tọa độ tâm của một đỉnh theo tên (Tag)
+        # magic
         def lay_toa_do_tam(ten_tag):
-            # Tìm tất cả vật thể có tag tên đỉnh (gồm hình tròn + chữ)
             items = self.drawing_area.find_withtag(ten_tag)
             for item in items:
                 # Chỉ lấy tọa độ của hình tròn (oval)
@@ -126,11 +117,8 @@ class Canvas(ctk.CTkFrame):
                     return center_x, center_y
             return None, None
 
-        # 2. Lấy tọa độ thật của 2 đỉnh
         x_start, y_start = lay_toa_do_tam(ten_dinh_1)
         x_end, y_end = lay_toa_do_tam(ten_dinh_2)
-
-        # 3. Nếu tìm thấy cả 2 thì gọi hàm vẽ bên cf
         if x_start is not None and x_end is not None:
             cf.tao_duong_noi(
                 self.drawing_area, 
@@ -147,7 +135,7 @@ class Canvas(ctk.CTkFrame):
                 "weight": trong_so
             })
         else:
-            print("--> Lỗi: Không tìm thấy đỉnh trên canvas!")
+            print("Không tìm thấy đỉnh")
 
     def reset_mau_dinh(self, node_name):
         """Tô lại màu trắng cho đỉnh"""
@@ -156,7 +144,6 @@ class Canvas(ctk.CTkFrame):
 
     def highlight_duong_di(self, list_nodes):
         """Đổi màu các cạnh có sẵn sang màu đỏ"""
-        # Reset tất cả các cạnh về màu đen trước
         self.drawing_area.itemconfig("day_noi", fill="black", width=2)
 
         if len(list_nodes) < 2: return
@@ -166,10 +153,8 @@ class Canvas(ctk.CTkFrame):
             u = list_nodes[i]
             v = list_nodes[i+1]
             
-            # Tái tạo lại cái tên tag lúc mình tạo
+            # Tìm cạnh cần tô màu lại
             tag_can_tim = f"edge_{u}_{v}"
-            
-            # Lệnh itemconfig giúp đổi thuộc tính của vật thể có sẵn
             self.drawing_area.itemconfig(
                 tag_can_tim, 
                 fill="red",
@@ -177,7 +162,7 @@ class Canvas(ctk.CTkFrame):
             )
 
     def get_node_center(self, node_name):
-        """Hàm phụ tìm tọa độ tâm hình tròn dựa trên tên đỉnh (tag)"""
+        """Hàm phụ tìm tọa độ tâm hình tròn dựa trên tên đỉnh"""
         items = self.drawing_area.find_withtag(node_name)
         
         for item in items:
@@ -187,13 +172,12 @@ class Canvas(ctk.CTkFrame):
     
     #endregion
 
-    #region lưu xuất dữ liệu
+    #region lưu/load dữ liệu file
     def luu_du_lieu(self):
         # Lấy thông tin vertex và edges
         data = cf.lay_du_lieu_do_thi(self.drawing_area)
         data["edges"] = self.danh_sach_canh
-        
-        # Lưu 
+    
         ket_qua = cf.luu_file_txt(data, file_path="data_dothi.txt")
 
         # Hiển thị menu 'thành công'
@@ -204,9 +188,10 @@ class Canvas(ctk.CTkFrame):
 
     def export_data_text(self):
         """Trả về nội dung file data_dothi.txt hiện tại dưới dạng chuỗi (không ghi ra đĩa)."""
-        data = cf.lay_du_lieu_do_thi(self.drawing_area)
+        data = cf.lay_du_lieu_do_thi(self.drawing_area) # Lấy thông tin vertex và edges
         data["edges"] = self.danh_sach_canh
 
+        # Tạo chuỗi định dạng file txt
         lines = ["Vertex"]
         for node in data["nodes"]:
             lines.append(f"{node['id']} {node['x']} {node['y']}")
@@ -215,5 +200,46 @@ class Canvas(ctk.CTkFrame):
             lines.append(f"{edge['source']} {edge['target']} {edge['weight']}")
         return "\n".join(lines) + "\n"
     
+    def load_du_lieu_tu_file(self):
+        """Mở hộp thoại chọn file và load dữ liệu từ file vào canvas"""
+        
+        # Mở hộp thoại chọn file
+        file_path = filedialog.askopenfilename(
+            title="Chọn file dữ liệu đồ thị",
+            filetypes=(("Text Files", "*.txt"), ("All Files", "*.*"))
+        )
+        
+        if not file_path: return # Người dùng bấm hủy thì thoát
+
+        # Gọi hàm đọc file bên canvas_function
+        data = cf.doc_file_txt(file_path)
+        if not data:
+            messagebox.showerror("Lỗi", "Không đọc được file hoặc định dạng sai!")
+            return
+
+        self.reset_canvas()
+
+        # Vẽ lại đỉnh
+        max_char_code = 64
+        for node in data["nodes"]:
+            # Vẽ đỉnh lên màn hình
+            cf.tao_dinh(self.drawing_area, node["x"], node["y"], node["id"])
+            
+            if len(node["id"]) == 1: 
+                code = ord(node["id"])
+                if code > max_char_code:
+                    max_char_code = code
+        self.node_count = (max_char_code - 64)
+
+        # Vẽ lại cạnh
+        for edge in data["edges"]:
+            self.thuc_hien_noi_dinh(
+                edge["source"], 
+                edge["target"], 
+                edge["weight"]
+            )
+
+        messagebox.showinfo("Thành công", "Đã tải dữ liệu xong!")
+
     #endregion
 
