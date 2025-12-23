@@ -35,26 +35,21 @@ class App(ctk.CTk):
 
         #region Button
         self.sidebar_frame.btn_them_dinh.configure(
-            command=self.map_frame.set_mode_them_dinh
+            command=self.on_click_them_dinh
         )
 
         self.sidebar_frame.btn_xoa_dinh.configure(
-            command=self.map_frame.reset_canvas
+            command=lambda: [self.reset_nut_di_chuyen(), self.map_frame.reset_canvas()]
         )
 
         self.sidebar_frame.btn_tu_dinh.configure(
-            command=lambda: self.map_frame.set_mode_chon_tu_dinh(
-                self.sidebar_frame.cap_nhat_nut_tu_dinh
-            )
+            command=self.on_click_tu_dinh
         )
         
         self.sidebar_frame.btn_den_dinh.configure(
-            command=lambda: self.map_frame.set_mode_chon_den_dinh(
-                self.sidebar_frame.cap_nhat_nut_den_dinh
-            )
+            command=self.on_click_den_dinh
         )
 
-        # Refresh button for connect section: clear selections and reset form on canvas
         self.sidebar_frame.btn_reset_ket_noi.configure(
             command=self.xu_ly_lam_moi_ket_noi
         )
@@ -72,15 +67,11 @@ class App(ctk.CTk):
         )
 
         self.sidebar_frame.btn_start_node.configure(
-            command=lambda: self.map_frame.set_mode_chon_tu_dinh(
-                self.xu_ly_chon_start
-            )
+            command=self.on_click_algo_start
         )
 
         self.sidebar_frame.btn_end_node.configure(
-            command=lambda: self.map_frame.set_mode_chon_den_dinh(
-                self.xu_ly_chon_end
-            )
+            command=self.on_click_algo_end
         )
 
         self.sidebar_frame.btn_run_algorithm.configure(
@@ -89,6 +80,10 @@ class App(ctk.CTk):
         
         self.sidebar_frame.btn_reset_algo.configure(
             command=self.xu_ly_lam_moi_thuat_toan
+        )
+
+        self.sidebar_frame.btn_move_node.configure(
+            command=self.toggle_move_mode
         )
         
         #endregion
@@ -138,6 +133,17 @@ class App(ctk.CTk):
         # Reset form bên Sidebar
         self.sidebar_frame.reset_form_nhap_lieu()
 
+    def toggle_move_mode(self):
+        """Bật/tắt chế độ di chuyển đỉnh từ nút sidebar"""
+        if getattr(self.map_frame, 'mode', 'normal') != 'move_node':
+            # Bật chế độ di chuyển
+            self.map_frame.set_mode_di_chuyen()
+            self.sidebar_frame.btn_move_node.configure(text="Ngừng ", fg_color="#000000")
+        else:
+            # Tắt chế độ di chuyển
+            self.map_frame.set_mode_normal()
+            self.sidebar_frame.btn_move_node.configure(text="Di chuyển", fg_color="#9B9B9B")
+
     def xu_ly_chay_thuat_toan(self):
         graph_text = self.map_frame.export_data_text()
 
@@ -179,7 +185,6 @@ class App(ctk.CTk):
 
             if success:
                 chi_phi, path_nodes = data
-                # Hiển thị kết quả trong Sidebar thay vì popup
                 self.sidebar_frame.hien_thi_ket_qua(chi_phi, path_nodes, algo_name="Traveling Salesman")
                 self.map_frame.highlight_duong_di(path_nodes) # vẽ highlight bên canvas
             else:
@@ -190,11 +195,8 @@ class App(ctk.CTk):
 
     def xu_ly_lam_moi_thuat_toan(self):
         """Xử lý khi bấm nút Refresh (↻)"""
-        
-        # Xóa đường màu đỏ trên bản đồ
         self.map_frame.highlight_duong_di([]) 
 
-        # Trả lại màu trắng cho các đỉnh đang được chọn (nếu có)
         start = self.sidebar_frame.algo_start_node
         end = self.sidebar_frame.algo_end_node
         if start: 
@@ -226,7 +228,48 @@ class App(ctk.CTk):
         self.sidebar_frame.cap_nhat_algo_end(ten_dinh_moi)
         self.map_frame.to_mau_dinh(ten_dinh_moi, "#AED6F1")
 
+    def reset_nut_di_chuyen(self):
+        """Đưa nút di chuyển và chế độ di chuyển về trạng thái tắt"""
+        self.sidebar_frame.btn_move_node.configure(
+            text="Di chuyển", 
+            fg_color="#9B9B9B"
+        )
+        
+        if self.map_frame.mode == "move_node":
+            self.map_frame.set_mode_normal()
     #endregion
+
+    #region wrapper cho event click chuột
+    def on_click_them_dinh(self):
+        self.reset_nut_di_chuyen() # Tắt chế độ di chuyển trước
+        self.map_frame.set_mode_them_dinh() # Sau đó mới chuyển sang thêm đỉnh
+
+    def on_click_tu_dinh(self):
+        self.reset_nut_di_chuyen()
+        self.map_frame.set_mode_chon_tu_dinh(
+            self.sidebar_frame.cap_nhat_nut_tu_dinh
+        )
+
+    def on_click_den_dinh(self):
+        self.reset_nut_di_chuyen()
+        self.map_frame.set_mode_chon_den_dinh(
+            self.sidebar_frame.cap_nhat_nut_den_dinh
+        )
+
+    def on_click_algo_start(self):
+        self.reset_nut_di_chuyen()
+        self.map_frame.set_mode_chon_tu_dinh(
+            self.xu_ly_chon_start
+        )
+
+    def on_click_algo_end(self):
+        self.reset_nut_di_chuyen()
+        self.map_frame.set_mode_chon_den_dinh(
+            self.xu_ly_chon_end
+        )
+
+    #endregion
+
 if __name__ == "__main__":
     app = App()
     app.mainloop()

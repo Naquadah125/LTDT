@@ -17,14 +17,30 @@ class Sidebar(tk.Frame):
         lbl.pack(pady=10)
 
         #region thêm đỉnh button
+        self.frame_header_them_dinh = ctk.CTkFrame(self, fg_color="transparent")
+        self.frame_header_them_dinh.pack(fill="x", padx=10, pady=0)
+
         self.lbl_huong_dan = ctk.CTkLabel(
-            self,
+            self.frame_header_them_dinh,
             text="Thêm đỉnh vào sơ đồ: ",
             font=styles.get_font(size=14, weight="bold"),
             text_color="black",
             anchor="w"
         )
-        self.lbl_huong_dan.pack(fill="x", padx=10, pady=0)
+        self.lbl_huong_dan.pack(side="left")
+
+        # nút toggle
+        self.btn_move_node = ctk.CTkButton(
+            self.frame_header_them_dinh,
+            text="Di chuyển",
+            width=80,
+            height=20,
+            font=styles.get_font(size=13, weight="bold"),
+            fg_color="#9B9B9B",
+            hover_color="#827979",
+            corner_radius=5
+        )
+        self.btn_move_node.pack(side="right", padx=(5, 0))
 
         self.btn_them_dinh = ctk.CTkButton(
             self,
@@ -75,6 +91,7 @@ class Sidebar(tk.Frame):
         )
         self.lbl_ket_noi.pack(side="left")
 
+        # Refresh button
         self.btn_reset_ket_noi = ctk.CTkButton(
             self.frame_header_ket_noi,
             text="Refresh",
@@ -252,30 +269,55 @@ class Sidebar(tk.Frame):
 
         #endregion
 
-        #region thêm nút lưu, load file
+#region thêm nút lưu, load file, hiện thị chi tiết
+        
+        # Tạo một frame tổng ở dưới đáy để chứa 2 dòng nút
+        self.frame_bottom_area = ctk.CTkFrame(self, fg_color="transparent")
+        self.frame_bottom_area.pack(side="bottom", fill="x", padx=10, pady=(10, 20))
+
+        # --- DÒNG 1: Nút Chi tiết thông tin ---
+        self.btn_chi_tiet_thong_tin = ctk.CTkButton(
+            self.frame_bottom_area,
+            text="Chi tiết thông tin",
+            height=40,
+            font=styles.get_font(size=13, weight="bold"),
+            fg_color="#8E44AD",
+            hover_color="#6C3483",
+            corner_radius=10
+        )
+        # pack(fill="x") để nút tự giãn ra cho đẹp
+        self.btn_chi_tiet_thong_tin.pack(side="top", fill="x", pady=(0, 10)) 
+
+        # --- DÒNG 2: Chứa nút Lưu và Load ---
+        self.frame_file_actions = ctk.CTkFrame(self.frame_bottom_area, fg_color="transparent")
+        self.frame_file_actions.pack(side="top", fill="x")
+
+        # Lưu File (Bên trái)
         self.btn_luu_file = ctk.CTkButton(
-            self,
-            text="Lưu File",
-            width=120,
+            self.frame_file_actions,
+            text="Lưu",
+            width=80, # Giảm width xuống một chút
             height=40,
             font=styles.get_font(size=13, weight="bold"),
             fg_color="#F39C12",
             hover_color="#D68910",
             corner_radius=10
         )
-        self.btn_luu_file.pack(side="bottom", anchor="e", padx=20, pady=5)
+        self.btn_luu_file.pack(side="left", fill="x", expand=True, padx=(0, 5))
 
+        # Load File (Bên phải)
         self.btn_load_file = ctk.CTkButton(
-            self,
-            text="Load File",
-            width=120, 
+            self.frame_file_actions,
+            text="Load",
+            width=80, # Giảm width xuống
             height=40,
             font=styles.get_font(size=13, weight="bold"),
-            fg_color="#3498DB", # Mình để màu Xanh Dương cho dễ phân biệt với nút Lưu
+            fg_color="#3498DB",
             hover_color="#2980B9",
             corner_radius=10
         )
-        self.btn_load_file.pack(side="bottom", anchor="e", padx=20, pady=5)
+        self.btn_load_file.pack(side="right", fill="x", expand=True, padx=(5, 0))
+
         #endregion
 
     #region sidebar_function stuff

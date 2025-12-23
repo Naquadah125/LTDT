@@ -34,7 +34,12 @@ class Canvas(ctk.CTkFrame):
         )
         self.drawing_area.pack(fill="both", expand=True, padx=20, pady=20)
 
+        #rengion event chuột
         self.drawing_area.bind("<Button-1>", self.on_canvas_click)
+        self.drawing_area.bind("<B1-Motion>", self.on_mouse_move)
+        self.drawing_area.bind("<ButtonRelease-1>", self.on_mouse_up)
+
+        #endregion
 
     #region MODE
     def set_mode_them_dinh(self):
@@ -54,22 +59,38 @@ class Canvas(ctk.CTkFrame):
         self.callback_chon_dinh = callback_ham # Lưu hàm lại
         self.drawing_area.config(cursor="hand2")
 
+    def set_mode_di_chuyen(self):
+        """Chuyển sang chế độ di chuyển đỉnh (bấm giữ + kéo)"""
+        self.mode = "move_node"
+        self.drawing_area.config(cursor="fleur")
+        self.dragging_node = None
+        self._drag_offset = (0, 0)
+
+    def set_mode_normal(self):
+        """Quay về chế độ bình thường"""
+        self.mode = "normal"
+        self.drawing_area.config(cursor="arrow")
+        self.dragging_node = None
+        self._drag_offset = (0, 0)
+
     #endregion
 
     #region click chuột
     def on_canvas_click(self, event):
-        """Xử lý khi người dùng bấm chuột vào canvas"""
+        """Hàm xử lý duy nhất khi bấm chuột trái"""
+        # TRƯỜNG HỢP 1: THÊM ĐỈNH (Add Node)
         if self.mode == "add_node":
             mouse_x = event.x
             mouse_y = event.y
             
-            # Tạo tên đỉnh
-            node_name = chr(65 + self.node_count) # ASCII: 65='A', 66='B'...
+            # Tạo tên đỉnh (A, B, C...)
+            node_name = chr(65 + self.node_count) 
             cf.tao_dinh(self.drawing_area, mouse_x, mouse_y, node_name)
             self.node_count += 1
+            return # Quan trọng: return để dừng, không chạy code bên dưới
 
+        # TRƯỜNG HỢP 2: CHỌN ĐỈNH (Select Source/Target)
         if self.mode in ["select_source", "select_target"]:
-            # Tìm đỉnh tại vị trí click
             items = self.drawing_area.find_overlapping(event.x, event.y, event.x+1, event.y+1)
             
             node_clicked = None
@@ -89,6 +110,103 @@ class Canvas(ctk.CTkFrame):
                 self.mode = "normal"
                 self.drawing_area.config(cursor="arrow")
                 self.callback_chon_dinh = None
+            return
+
+        # TRƯỜNG HỢP 3: DI CHUYỂN ĐỈNH
+        if self.mode == "move_node":
+            items = self.drawing_area.find_overlapping(event.x, event.y, event.x+1, event.y+1)
+            node_clicked = None
+            if items:
+                tags = self.drawing_area.gettags(items[-1])
+                for tag in tags:
+                    if tag not in ["node", "label", "current"]:
+                        node_clicked = tag
+                        break
+
+            if node_clicked:
+                self.dragging_node = node_clicked
+                center = self.get_node_center(node_clicked)
+                if center:
+                    cx, cy = center
+                    self._drag_offset = (cx - event.x, cy - event.y)
+
+    #endregion
+
+    #region kéo di chuyển đỉnh
+    def on_mouse_down(self, event):
+        """Bắt đầu kéo đỉnh nếu đang ở chế độ di chuyển"""
+        if self.mode != "move_node":
+            return
+
+        items = self.drawing_area.find_overlapping(event.x, event.y, event.x+1, event.y+1)
+        node_clicked = None
+        if items:
+            tags = self.drawing_area.gettags(items[-1])
+            for tag in tags:
+                if tag not in ["node", "label", "current"]:
+                    node_clicked = tag
+                    break
+
+        if node_clicked:
+            self.dragging_node = node_clicked
+            center = self.get_node_center(node_clicked)
+            if center:
+                cx, cy = center
+                self._drag_offset = (cx - event.x, cy - event.y)
+
+    def on_mouse_move(self, event):
+        """Di chuyển đỉnh khi giữ chuột"""
+        if self.mode != "move_node" or not getattr(self, 'dragging_node', None):
+            return
+
+        node_name = self.dragging_node
+        # Tính tọa độ mới của tâm
+        offset_x, offset_y = self._drag_offset
+        new_cx = event.x + offset_x
+        new_cy = event.y + offset_y
+
+        # Tìm các items thuộc node và cập nhật tọa độ
+        items = self.drawing_area.find_withtag(node_name)
+        for item in items:
+            if self.drawing_area.type(item) == "oval":
+                # lấy bán kính
+                x1, y1, x2, y2 = self.drawing_area.coords(item)
+                radius_x = (x2 - x1) / 2
+                radius_y = (y2 - y1) / 2
+                x0 = new_cx - radius_x
+                y0 = new_cy - radius_y
+                x1 = new_cx + radius_x
+                y1 = new_cy + radius_y
+                self.drawing_area.coords(item, x0, y0, x1, y1)
+            elif self.drawing_area.type(item) == "text":
+                self.drawing_area.coords(item, new_cx, new_cy)
+        self.redraw_edges()
+
+    def on_mouse_up(self, event):
+        """Kết thúc kéo, reset trạng thái drag"""
+        if self.mode != "move_node":
+            return
+
+        if getattr(self, 'dragging_node', None):
+            self.dragging_node = None
+            self._drag_offset = (0, 0)
+            self.redraw_edges()
+
+    def redraw_edges(self):
+        """Xóa và vẽ lại toàn bộ cạnh ứng với vị trí đỉnh hiện tại"""
+        self.drawing_area.delete("edge")
+
+        # Vẽ lại từng cạn
+        for edge in list(self.danh_sach_canh):
+            src = edge.get("source")
+            tgt = edge.get("target")
+            w = edge.get("weight")
+            src_center = self.get_node_center(src)
+            tgt_center = self.get_node_center(tgt)
+            if src_center and tgt_center:
+                x1, y1 = src_center
+                x2, y2 = tgt_center
+                cf.tao_duong_noi(self.drawing_area, x1, y1, x2, y2, w, src, tgt)
 
     #endregion
 
