@@ -20,8 +20,8 @@ class App(ctk.CTk):
         self.map_frame.grid(
             row=0, column=0, 
             sticky="nsew", 
-            padx=(20, 10),  # Cách lề trái 20px, cách lề phải 10px (để tạo khe giữa)
-            pady=20         # Cách trên dưới 20px
+            padx=(20, 10),
+            pady=20
         )
 
         # Load sidebar
@@ -29,8 +29,8 @@ class App(ctk.CTk):
         self.sidebar_frame.grid(
             row=0, column=1, 
             sticky="nsew", 
-            padx=(0, 20),   # Không cách trái (để dính vào khe giữa), cách phải 20px
-            pady=20         # Cách trên dưới 20px
+            padx=(0, 20),
+            pady=20
         )
 
         #region Button
@@ -86,6 +86,10 @@ class App(ctk.CTk):
             command=self.toggle_move_mode
         )
         
+        self.sidebar_frame.btn_thong_tin.configure(
+            command=self.xu_ly_hien_thong_tin
+        )
+
         #endregion
         
     #region Xử lý functions
@@ -119,12 +123,10 @@ class App(ctk.CTk):
         self.sidebar_frame.reset_form_nhap_lieu()
 
     def xu_ly_lam_moi_ket_noi(self):
-        """Xử lý khi bấm Refresh ở phần Kết nối đỉnh:
-        - Xóa highlight (nếu có) của các đỉnh đang chọn
-        - Reset form nhập cạnh trong Sidebar
-        """
+        """Xử lý khi bấm Refresh ở phần Kết nối đỉnh:"""
         u = self.sidebar_frame.tu_dinh_da_chon
         v = self.sidebar_frame.den_dinh_da_chon
+
         if u:
             self.map_frame.reset_mau_dinh(u)
         if v:
@@ -132,17 +134,6 @@ class App(ctk.CTk):
 
         # Reset form bên Sidebar
         self.sidebar_frame.reset_form_nhap_lieu()
-
-    def toggle_move_mode(self):
-        """Bật/tắt chế độ di chuyển đỉnh từ nút sidebar"""
-        if getattr(self.map_frame, 'mode', 'normal') != 'move_node':
-            # Bật chế độ di chuyển
-            self.map_frame.set_mode_di_chuyen()
-            self.sidebar_frame.btn_move_node.configure(text="Ngừng ", fg_color="#000000")
-        else:
-            # Tắt chế độ di chuyển
-            self.map_frame.set_mode_normal()
-            self.sidebar_frame.btn_move_node.configure(text="Di chuyển", fg_color="#9B9B9B")
 
     def xu_ly_chay_thuat_toan(self):
         graph_text = self.map_frame.export_data_text()
@@ -157,7 +148,7 @@ class App(ctk.CTk):
                 messagebox.showwarning("Thiếu thông tin", "Vui lòng chọn đầy đủ:\n- Điểm Bắt đầu\n- Điểm Kết thúc")
                 return
             
-        elif algo_name == "Traveling Salesman":
+        elif algo_name == "TSP":
             if not start:
                 messagebox.showwarning("Thiếu thông tin", "Vui lòng chọn Điểm Bắt đầu!")
                 return
@@ -179,7 +170,7 @@ class App(ctk.CTk):
             else:
                 messagebox.showerror("Lỗi", data)
         
-        elif algo_name == "Traveling Salesman":
+        elif algo_name == "TSP":
             # Gọi backend TSP
             success, data = bc.goi_backend_tsp(start, graph_text)
 
@@ -231,15 +222,53 @@ class App(ctk.CTk):
     def reset_nut_di_chuyen(self):
         """Đưa nút di chuyển và chế độ di chuyển về trạng thái tắt"""
         self.sidebar_frame.btn_move_node.configure(
-            text="Di chuyển", 
-            fg_color="#9B9B9B"
+            text="Di chuyển đỉnh",   # Chữ ngắn gọn
+            fg_color="#ECF0F1",    # Màu trắng xám (Normal theme)
+            text_color="#2C3E50"   # Màu chữ đen xanh
         )
-        
-        if self.map_frame.mode == "move_node":
+        if getattr(self.map_frame, 'mode', 'normal') == "move_node":
             self.map_frame.set_mode_normal()
+
+    def toggle_move_mode(self):
+        """Bật/tắt chế độ di chuyển đỉnh từ nút sidebar"""
+        if getattr(self.map_frame, 'mode', 'normal') != 'move_node':
+            self.map_frame.set_mode_di_chuyen()
+            self.sidebar_frame.btn_move_node.configure(
+                text="Ngừng",
+                fg_color="#2C3E50",
+                text_color="white"
+            )
+        else:
+            self.map_frame.set_mode_normal()
+            self.sidebar_frame.btn_move_node.configure(
+                text="Di chuyển đỉnh",
+                fg_color="#ECF0F1",
+                text_color="#2C3E50"
+            )
+    
+    def xu_ly_hien_thong_tin(self):
+        """Tính toán số liệu và hiển thị lên Canvas"""
+        import GUI.canvas_function as cf 
+        
+        raw_data = cf.lay_du_lieu_do_thi(self.map_frame.drawing_area)
+        nodes = raw_data["nodes"]
+        edges = self.map_frame.danh_sach_canh
+
+        so_dinh = len(nodes)
+        so_canh = len(edges)
+        tong_trong_so = 0
+        
+        for edge in edges:
+            try:
+                tong_trong_so += int(edge['weight'])
+            except ValueError:
+                pass
+
+        self.map_frame.hien_thi_bang_thong_tin(so_dinh, so_canh, edges, tong_trong_so)
+
     #endregion
 
-    #region wrapper cho event click chuột
+    #region Wrapper cho event click chuột
     def on_click_them_dinh(self):
         self.reset_nut_di_chuyen() # Tắt chế độ di chuyển trước
         self.map_frame.set_mode_them_dinh() # Sau đó mới chuyển sang thêm đỉnh
