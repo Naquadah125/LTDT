@@ -170,6 +170,10 @@ class Canvas(ctk.CTkFrame):
                 coords = self.drawing_area.coords(item)
                 return (coords[0] + coords[2])/2, (coords[1] + coords[3])/2
     
+    def to_mau_dinh(self, node_name, color):
+        """Hàm wrapper để tô màu đỉnh tùy ý"""
+        if node_name:
+            cf.chinh_mau_dinh(self.drawing_area, node_name, color)
     #endregion
 
     #region lưu/load dữ liệu file

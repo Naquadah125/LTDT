@@ -54,6 +54,11 @@ class App(ctk.CTk):
             )
         )
 
+        # Refresh button for connect section: clear selections and reset form on canvas
+        self.sidebar_frame.btn_reset_ket_noi.configure(
+            command=self.xu_ly_lam_moi_ket_noi
+        )
+
         self.sidebar_frame.btn_them_canh.configure(
             command=self.xu_ly_them_canh
         )
@@ -68,13 +73,13 @@ class App(ctk.CTk):
 
         self.sidebar_frame.btn_start_node.configure(
             command=lambda: self.map_frame.set_mode_chon_tu_dinh(
-                self.sidebar_frame.cap_nhat_algo_start
+                self.xu_ly_chon_start
             )
         )
 
         self.sidebar_frame.btn_end_node.configure(
             command=lambda: self.map_frame.set_mode_chon_den_dinh(
-                self.sidebar_frame.cap_nhat_algo_end
+                self.xu_ly_chon_end
             )
         )
 
@@ -88,6 +93,7 @@ class App(ctk.CTk):
         
         #endregion
         
+    #region Xử lý functions
     def xu_ly_them_canh(self):
         # Lấy dữ liệu từ Sidebar
         u = self.sidebar_frame.tu_dinh_da_chon
@@ -115,6 +121,21 @@ class App(ctk.CTk):
         # Reset form
         self.map_frame.reset_mau_dinh(u)
         self.map_frame.reset_mau_dinh(v)
+        self.sidebar_frame.reset_form_nhap_lieu()
+
+    def xu_ly_lam_moi_ket_noi(self):
+        """Xử lý khi bấm Refresh ở phần Kết nối đỉnh:
+        - Xóa highlight (nếu có) của các đỉnh đang chọn
+        - Reset form nhập cạnh trong Sidebar
+        """
+        u = self.sidebar_frame.tu_dinh_da_chon
+        v = self.sidebar_frame.den_dinh_da_chon
+        if u:
+            self.map_frame.reset_mau_dinh(u)
+        if v:
+            self.map_frame.reset_mau_dinh(v)
+
+        # Reset form bên Sidebar
         self.sidebar_frame.reset_form_nhap_lieu()
 
     def xu_ly_chay_thuat_toan(self):
@@ -146,8 +167,9 @@ class App(ctk.CTk):
             
             if success:
                 chi_phi, path_nodes = data
-                messagebox.showinfo("Kết quả", f"Chi phí: {chi_phi}\nLộ trình: {' -> '.join(path_nodes)}")
-                self.map_frame.highlight_duong_di(path_nodes)# Vẽ highlight bên canvas
+                # Hiển thị kết quả trong Sidebar thay vì popup
+                self.sidebar_frame.hien_thi_ket_qua(chi_phi, path_nodes, algo_name="Dijkstra")
+                self.map_frame.highlight_duong_di(path_nodes) # Vẽ highlight bên canvas
             else:
                 messagebox.showerror("Lỗi", data)
         
@@ -157,9 +179,9 @@ class App(ctk.CTk):
 
             if success:
                 chi_phi, path_nodes = data
-                
-                messagebox.showinfo("Kết quả TSP", f"Tổng chi phí: {chi_phi}\nLộ trình: {' -> '.join(path_nodes)}")
-                self.map_frame.highlight_duong_di(path_nodes)# vẽ highlight bên canvas
+                # Hiển thị kết quả trong Sidebar thay vì popup
+                self.sidebar_frame.hien_thi_ket_qua(chi_phi, path_nodes, algo_name="Traveling Salesman")
+                self.map_frame.highlight_duong_di(path_nodes) # vẽ highlight bên canvas
             else:
                 messagebox.showerror("Lỗi TSP", data)
 
@@ -182,7 +204,29 @@ class App(ctk.CTk):
 
         # Reset giao diện bên Sidebar
         self.sidebar_frame.reset_algo_ui()
-        
+        self.sidebar_frame.xoa_ket_qua()
+    
+    def xu_ly_chon_start(self, ten_dinh_moi):
+        """Callback khi người dùng chọn xong điểm Bắt đầu trên Canvas"""
+        dinh_cu = self.sidebar_frame.algo_start_node
+        if dinh_cu and dinh_cu != ten_dinh_moi:
+            self.map_frame.reset_mau_dinh(dinh_cu)
+            
+        # Cập nhật Sidebar
+        self.sidebar_frame.cap_nhat_algo_start(ten_dinh_moi)
+        self.map_frame.to_mau_dinh(ten_dinh_moi, "#AED6F1")
+
+    def xu_ly_chon_end(self, ten_dinh_moi):
+        """Callback khi người dùng chọn xong điểm Kết thúc"""
+        dinh_cu = self.sidebar_frame.algo_end_node
+        if dinh_cu and dinh_cu != ten_dinh_moi:
+            self.map_frame.reset_mau_dinh(dinh_cu)
+            
+        # Cập nhật Sidebar
+        self.sidebar_frame.cap_nhat_algo_end(ten_dinh_moi)
+        self.map_frame.to_mau_dinh(ten_dinh_moi, "#AED6F1")
+
+    #endregion
 if __name__ == "__main__":
     app = App()
     app.mainloop()

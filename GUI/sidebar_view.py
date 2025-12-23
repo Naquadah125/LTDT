@@ -63,14 +63,29 @@ class Sidebar(tk.Frame):
         #endregion
 
         #region Nối đỉnh
+        self.frame_header_ket_noi = ctk.CTkFrame(self, fg_color="transparent")
+        self.frame_header_ket_noi.pack(fill="x", padx=10, pady=0)
+
         self.lbl_ket_noi = ctk.CTkLabel(
-            self,
+            self.frame_header_ket_noi,
             text="Kết nối đỉnh (Thêm cạnh):",
             font=styles.get_font(size=14, weight="bold"),
             text_color="black",
             anchor="w"
         )
-        self.lbl_ket_noi.pack(fill="x", padx=10, pady=0)
+        self.lbl_ket_noi.pack(side="left")
+
+        self.btn_reset_ket_noi = ctk.CTkButton(
+            self.frame_header_ket_noi,
+            text="Refresh",
+            width=30,
+            height=30,
+            font=styles.get_font(size=13, weight="bold"),
+            fg_color="#7F8C8D",
+            hover_color="#95A5A6"
+        )
+        self.btn_reset_ket_noi.pack(side="right", padx=(5, 0))
+        self.btn_reset_ket_noi.configure(command=self.reset_form_nhap_lieu)
 
         # Frame chứa 2 nút chọn đỉnh
         self.frame_action = ctk.CTkFrame(self, fg_color="transparent")
@@ -201,6 +216,42 @@ class Sidebar(tk.Frame):
 
         #endregion
 
+        #region Khu vực hiển thị kết quả thuật toán
+        # Frame chứa toàn bộ phần kết quả
+        self.frame_result_top = ctk.CTkFrame(self, fg_color="#FFFFFF", corner_radius=8)
+        self.frame_result_top.pack(fill="x", pady=(5, 5))
+
+        self.lbl_kq_title = ctk.CTkLabel(
+            self.frame_result_top,
+            text="Kết quả:",
+            font=styles.get_font(size=14, weight="bold"),
+            text_color="#000000",
+            anchor="w"
+        )
+        self.lbl_kq_title.pack(fill="x", padx=8, pady=(8, 0))
+
+        self.lbl_chi_phi = ctk.CTkLabel(
+            self.frame_result_top,
+            text="Chi phí: -",
+            font=styles.get_font(size=13, weight="bold"),
+            text_color="#FF0000",
+            anchor="w"
+        )
+        self.lbl_chi_phi.pack(fill="x", padx=8, pady=0)
+
+        self.lbl_lo_trinh = ctk.CTkLabel(
+            self.frame_result_top,
+            text="Lộ trình: -",
+            font=styles.get_font(size=13, weight="bold"),
+            text_color="#FF0000",
+            anchor="w",
+            wraplength=240,
+            justify="left"
+        )
+        self.lbl_lo_trinh.pack(fill="x", padx=8, pady=0)
+
+        #endregion
+
         #region thêm nút lưu, load file
         self.btn_luu_file = ctk.CTkButton(
             self,
@@ -252,19 +303,19 @@ class Sidebar(tk.Frame):
             self.btn_end_node.pack(side="right", fill="x", expand=True, padx=(2, 0))
 
     def cap_nhat_algo_start(self, ten_dinh):
-        """Cập nhật nút Bắt đầu (Màu tím)"""
         self.algo_start_node = ten_dinh
         self.btn_start_node.configure(
             text=f"Bắt đầu: {ten_dinh}", 
-            fg_color="#8E44AD"
+            fg_color="#34F222",
+            hover_color="#2ECC71"
         )
 
     def cap_nhat_algo_end(self, ten_dinh):
-        """Cập nhật nút Kết thúc (Màu tím)"""
         self.algo_end_node = ten_dinh
         self.btn_end_node.configure(
             text=f"Kết thúc: {ten_dinh}", 
-            fg_color="#8E44AD"
+            fg_color="#34F222",
+            hover_color="#2ECC71"
         )
 
     def reset_algo_ui(self):
@@ -272,12 +323,37 @@ class Sidebar(tk.Frame):
         self.algo_start_node = None
         self.algo_end_node = None
 
-        self.btn_start_node.configure(text="Bắt đầu: ?", fg_color="#555555")
-        self.btn_end_node.configure(text="Kết thúc: ?", fg_color="#555555")
+        self.btn_start_node.configure(
+            text="Bắt đầu: ?", 
+            fg_color="#555555",
+            hover_color="#333333"
+        )
+        self.btn_end_node.configure(
+            text="Kết thúc: ?", 
+            fg_color="#555555",
+            hover_color="#333333"
+        )
 
         # Reset dropdown về Dijkstra
         self.option_thuat_toan.set("Dijkstra")
         self.thay_doi_ten_nut_chay("Dijkstra")
+
+    def hien_thi_ket_qua(self, chi_phi, path_nodes, algo_name=""):
+        """Hiển thị kết quả ở phần kết quả sidebar"""
+        try:
+            self.lbl_chi_phi.configure(text=f"Chi phí: {chi_phi}")
+            self.lbl_lo_trinh.configure(text=f"Lộ trình: {' -> '.join(path_nodes)}")
+        except AttributeError:
+            # Nếu phần UI chưa được tạo, bỏ qua một cách an toàn
+            pass
+
+    def xoa_ket_qua(self):
+        """Xóa/Reset phần hiển thị kết quả"""
+        try:
+            self.lbl_chi_phi.configure(text="Chi phí: -")
+            self.lbl_lo_trinh.configure(text="Lộ trình: -")
+        except AttributeError:
+            pass
 
     #endregion
 
