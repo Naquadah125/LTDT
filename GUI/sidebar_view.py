@@ -261,18 +261,7 @@ class Sidebar(ctk.CTkFrame):
         
         #endregion
 
-    #region function tạo UI
-    def create_header_label(self, text):
-        lbl = ctk.CTkLabel(
-            self, text=text, 
-            font=styles.get_font(size=12, weight="bold"),
-            text_color=THEME_TEXT_HEADER, anchor="w"
-        )
-        lbl.pack(fill="x", padx=PAD_X, pady=(15, 2))
-    
-    #endregion
-
-    #region function helper
+    #region function cập nhật UI
     def cap_nhat_nut_tu_dinh(self, ten_dinh):
         sidebar_function.cap_nhat_tu_dinh(self, ten_dinh)
 
@@ -316,4 +305,12 @@ class Sidebar(ctk.CTkFrame):
             self.lbl_lo_trinh.configure(text="Lộ trình: -")
         except AttributeError: pass
     
+    def create_header_label(self, text):
+        lbl = ctk.CTkLabel(
+            self, text=text, 
+            font=styles.get_font(size=12, weight="bold"),
+            text_color=THEME_TEXT_HEADER, anchor="w"
+        )
+        lbl.pack(fill="x", padx=PAD_X, pady=(15, 2))
     #endregion
+    

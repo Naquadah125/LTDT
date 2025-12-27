@@ -1,11 +1,5 @@
 LÝ THUYẾT ĐỒ THỊ
 
-TO DO LIST:
- + Thuật toán dijkstra (đang làm)
- + Thêm thuật toán Traveling salesman (đang làm)
- + Thêm việc chọn Node để đi theo thứ tự (đang làm)
- + Thêm nút undo, mode di chuyển đỉnh. 
-
 INSTALLATION GUIDE:
 Bước 1: Cài đặt Python
 Tải Python (bản 3.10 trở lên) tại: https://www.python.org/downloads/

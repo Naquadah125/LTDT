@@ -101,11 +101,13 @@ class Canvas(ctk.CTkFrame):
                 if center:
                     cx, cy = center
                     self._drag_offset = (cx - event.x, cy - event.y)
+    
     #endregion
 
     #region kéo di chuyển đỉnh
     def on_mouse_down(self, event):
         if self.mode != "move_node": return
+
         items = self.drawing_area.find_overlapping(event.x, event.y, event.x+1, event.y+1)
         node_clicked = None
         if items:
