@@ -1,4 +1,5 @@
 import tkinter as tk
+import copy
 from tkinter import messagebox, filedialog
 import customtkinter as ctk
 import GUI.canvas_function as cf
@@ -10,6 +11,7 @@ class Canvas(ctk.CTkFrame):
         self.mode = "normal"
         self.node_count = 0
         self.danh_sach_canh = []
+        self.history = []
         self.selected_node = None
 
         self.configure(fg_color="white", bg_color="#6a76b5", corner_radius=25)
@@ -57,6 +59,8 @@ class Canvas(ctk.CTkFrame):
     #region click chuột
     def on_canvas_click(self, event):
         if self.mode == "add_node":
+            self.luu_lich_su()
+
             mouse_x = event.x
             mouse_y = event.y
             node_name = chr(65 + self.node_count) 
@@ -111,6 +115,8 @@ class Canvas(ctk.CTkFrame):
                     node_clicked = tag
                     break
         if node_clicked:
+            self.luu_lich_su()
+
             self.dragging_node = node_clicked
             center = self.get_node_center(node_clicked)
             if center:
@@ -176,12 +182,13 @@ class Canvas(ctk.CTkFrame):
         self.node_count = 0
         self.mode = "normal"
         self.danh_sach_canh = []
+        self.history = []
         self.drawing_area.config(cursor="arrow")
         if hasattr(self, 'info_frame'): self.info_frame.destroy()
 
     def thuc_hien_noi_dinh(self, ten_dinh_1, ten_dinh_2, trong_so):
         self.danh_sach_canh.append({"source": ten_dinh_1, "target": ten_dinh_2, "weight": trong_so})
-        self.redraw_edges() # Gọi redraw để tính toán lại toàn bộ offset
+        self.redraw_edges() # Gọi redraw để offset
 
     def reset_mau_dinh(self, node_name):
         if node_name: cf.chinh_mau_dinh(self.drawing_area, node_name, "white")
@@ -289,4 +296,48 @@ class Canvas(ctk.CTkFrame):
         if hasattr(self, 'info_frame') and self.info_frame:
             self.info_frame.destroy()
     
+    #endregion
+
+    #region lịch sử
+    def luu_lich_su(self):
+        current_data = cf.lay_du_lieu_do_thi(self.drawing_area)
+        
+        # Tạo snapshot (Bản chụp)
+        state = {
+            "nodes": current_data["nodes"],
+            "edges": copy.deepcopy(self.danh_sach_canh),
+            "node_count": self.node_count
+        }
+        
+        self.history.append(state)
+        # Giới hạn lịch sử
+        if len(self.history) > 20:
+            self.history.pop(0)
+
+    def thuc_hien_undo(self):
+        if not self.history:
+            messagebox.showinfo("Thông báo", "Không còn gì để Undo!")
+            return
+
+        # Lấy trạng thái gần nhất
+        last_state = self.history.pop()
+        
+        # Khôi phục dữ liệu
+        self.reset_canvas_for_undo() # Hàm reset nhưng không xóa history
+        self.node_count = last_state["node_count"]
+        self.danh_sach_canh = last_state["edges"]
+
+        # Vẽ lại đỉnh
+        for node in last_state["nodes"]:
+            cf.tao_dinh(self.drawing_area, node["x"], node["y"], node["id"])
+        
+        # Vẽ lại cạnh
+        self.redraw_edges()
+
+    def reset_canvas_for_undo(self):
+        """Reset canvas nhưng giữ lại history"""
+        cf.xoa_tat_ca(self.drawing_area)
+        # Không reset self.history ở đây
+        if hasattr(self, 'info_frame'): self.info_frame.destroy()
+
     #endregion

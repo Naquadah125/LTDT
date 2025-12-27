@@ -3,7 +3,6 @@ import customtkinter as ctk
 from . import styles
 from . import sidebar_function
 
-# --- THEME COMPACT ---
 THEME_BG = "#4e5b91"
 THEME_BTN_NORMAL = "#ECF0F1"
 THEME_BTN_HOVER = "#BDC3C7"
@@ -15,7 +14,7 @@ BTN_H = 28
 PAD_X = 10
 FIXED_W = 60
 
-class Sidebar(ctk.CTkFrame):
+class Sidebar(ctk.CTkFrame):    
     def __init__(self, parent):
         super().__init__(parent, fg_color=THEME_BG, corner_radius=0)
 
@@ -32,7 +31,7 @@ class Sidebar(ctk.CTkFrame):
         )
         self.lbl_title.pack(pady=(15, 15))
 
-        #region THAO TÁC ĐỈNH & DỮ LIỆU
+        #region Cài đặt chung
         self.frame_header_dinh = ctk.CTkFrame(self, fg_color="transparent")
         self.frame_header_dinh.pack(fill="x", padx=PAD_X, pady=(5, 2))
 
@@ -54,16 +53,16 @@ class Sidebar(ctk.CTkFrame):
         )
         self.btn_them_dinh.pack(fill="x", padx=PAD_X, pady=(0, 5))
 
-        # Nút Làm mới
-        self.btn_xoa_dinh = ctk.CTkButton(
+        # Nút di chuyển
+        self.btn_move_node = ctk.CTkButton(
             self,
-            text="Làm mới đồ thị",
+            text="Di chuyển đỉnh", 
             height=BTN_H,
             font=styles.get_font(size=12, weight="bold"),
             fg_color=THEME_BTN_NORMAL, text_color=THEME_TEXT_BTN, hover_color=THEME_BTN_HOVER,
             corner_radius=6
         )
-        self.btn_xoa_dinh.pack(fill="x", padx=PAD_X, pady=(0, 5))
+        self.btn_move_node.pack(fill="x", padx=PAD_X, pady=(0, 5))
 
         # Nút Thông tin
         self.btn_thong_tin = ctk.CTkButton(
@@ -76,16 +75,40 @@ class Sidebar(ctk.CTkFrame):
         )
         self.btn_thong_tin.pack(fill="x", padx=PAD_X, pady=(0, 5))
 
-        # Nút Move
-        self.btn_move_node = ctk.CTkButton(
+        #endregion
+
+        #region Chỉnh sửa đỉnh
+        self.frame_chinh_sua = ctk.CTkFrame(self, fg_color="transparent")
+        self.frame_chinh_sua.pack(fill="x", padx=PAD_X, pady=(5, 2))
+
+        self.lbl_dinh = ctk.CTkLabel(
+            self.frame_chinh_sua, text="Xóa", 
+            font=styles.get_font(size=12, weight="bold"),
+            text_color=THEME_TEXT_HEADER, anchor="w"
+        )
+        self.lbl_dinh.pack(side="left")
+
+        # Nút Làm mới
+        self.btn_xoa_dinh = ctk.CTkButton(
             self,
-            text="Chỉnh sửa đỉnh", 
+            text="Làm mới đồ thị",
             height=BTN_H,
             font=styles.get_font(size=12, weight="bold"),
             fg_color=THEME_BTN_NORMAL, text_color=THEME_TEXT_BTN, hover_color=THEME_BTN_HOVER,
             corner_radius=6
         )
-        self.btn_move_node.pack(fill="x", padx=PAD_X, pady=(0, 5))
+        self.btn_xoa_dinh.pack(fill="x", padx=PAD_X, pady=(0, 5))
+
+        # Nút Undo
+        self.btn_undo = ctk.CTkButton(
+            self,
+            text="Hoàn tác ",
+            height=BTN_H,
+            font=styles.get_font(size=12, weight="bold"),
+            fg_color=THEME_BTN_NORMAL, text_color=THEME_TEXT_BTN, hover_color=THEME_BTN_HOVER,
+            corner_radius=6
+        )
+        self.btn_undo.pack(fill="x", padx=PAD_X, pady=(0, 5))
 
         #endregion
 
@@ -151,7 +174,7 @@ class Sidebar(ctk.CTkFrame):
         
         #endregion
 
-        #region THUẬT TOÁN
+        #region Thuật toán
         self.create_header_label("Thuật toán")
 
         self.option_thuat_toan = ctk.CTkOptionMenu(
@@ -205,9 +228,10 @@ class Sidebar(ctk.CTkFrame):
             corner_radius=6
         )
         self.btn_reset_algo.pack(side="right")
+        
         #endregion
 
-        #region KẾT QUẢ
+        #region Kết quả
         self.frame_result = ctk.CTkFrame(self, fg_color="white", corner_radius=6)
         self.frame_result.pack(fill="x", padx=PAD_X, pady=(10, 5))
         
@@ -216,9 +240,10 @@ class Sidebar(ctk.CTkFrame):
         
         self.lbl_lo_trinh = ctk.CTkLabel(self.frame_result, text="Lộ trình: -", text_color="black", anchor="w", font=styles.get_font(size=13, weight="bold"))
         self.lbl_lo_trinh.pack(fill="x", padx=5, pady=(0, 2))
+        
         #endregion
 
-        #region LƯU / LOAD FILE
+        #region lưu / load file
         self.frame_footer = ctk.CTkFrame(self, fg_color="transparent")
         self.frame_footer.pack(side="bottom", fill="x", padx=PAD_X, pady=10)
 
@@ -233,20 +258,21 @@ class Sidebar(ctk.CTkFrame):
             font=styles.get_font(size=16, weight="bold"), fg_color=THEME_BTN_NORMAL, text_color=THEME_TEXT_BTN, hover_color=THEME_BTN_HOVER
         )
         self.btn_load_file.pack(side="right", fill="x", expand=True, padx=(2, 0))
+        
         #endregion
 
-    #region Functions tạo UI
+    #region function tạo UI
     def create_header_label(self, text):
         lbl = ctk.CTkLabel(
             self, text=text, 
             font=styles.get_font(size=12, weight="bold"),
             text_color=THEME_TEXT_HEADER, anchor="w"
         )
-        lbl.pack(fill="x", padx=PAD_X, pady=(25, 2))
+        lbl.pack(fill="x", padx=PAD_X, pady=(15, 2))
     
     #endregion
 
-    #region Function hỗ trợ
+    #region function helper
     def cap_nhat_nut_tu_dinh(self, ten_dinh):
         sidebar_function.cap_nhat_tu_dinh(self, ten_dinh)
 

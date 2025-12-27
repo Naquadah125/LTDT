@@ -39,7 +39,11 @@ class App(ctk.CTk):
         )
 
         self.sidebar_frame.btn_xoa_dinh.configure(
-            command=lambda: [self.reset_nut_di_chuyen(), self.map_frame.reset_canvas()]
+            command=lambda: [
+                self.map_frame.luu_lich_su(),
+                self.reset_nut_di_chuyen(), 
+                self.map_frame.reset_canvas()
+            ]
         )
 
         self.sidebar_frame.btn_tu_dinh.configure(
@@ -90,6 +94,9 @@ class App(ctk.CTk):
             command=self.xu_ly_hien_thong_tin
         )
 
+        self.sidebar_frame.btn_undo.configure(
+            command=self.map_frame.thuc_hien_undo
+        )
         #endregion
         
     #region Xử lý functions
@@ -113,6 +120,8 @@ class App(ctk.CTk):
                     f"Cạnh từ {u} đến {v} đã tồn tại!"
                 )
                 return
+
+        self.map_frame.luu_lich_su()
 
         # Gửi sang Canvas để vẽ
         self.map_frame.thuc_hien_noi_dinh(u, v, w)
