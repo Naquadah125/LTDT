@@ -22,6 +22,7 @@ class Canvas(ctk.CTkFrame):
         self.drawing_area.bind("<Button-1>", self.on_canvas_click)
         self.drawing_area.bind("<B1-Motion>", self.on_mouse_move)
         self.drawing_area.bind("<ButtonRelease-1>", self.on_mouse_up)
+
         #endregion
 
     #region MODE
@@ -50,10 +51,10 @@ class Canvas(ctk.CTkFrame):
         self.drawing_area.config(cursor="arrow")
         self.dragging_node = None
         self._drag_offset = (0, 0)
-    
+
     #endregion
 
-    #region Click chuột
+    #region click chuột
     def on_canvas_click(self, event):
         if self.mode == "add_node":
             mouse_x = event.x
@@ -98,7 +99,7 @@ class Canvas(ctk.CTkFrame):
                     self._drag_offset = (cx - event.x, cy - event.y)
     #endregion
 
-    #region Kéo di chuyển đỉnh
+    #region kéo di chuyển đỉnh
     def on_mouse_down(self, event):
         if self.mode != "move_node": return
         items = self.drawing_area.find_overlapping(event.x, event.y, event.x+1, event.y+1)
@@ -143,16 +144,30 @@ class Canvas(ctk.CTkFrame):
 
     def redraw_edges(self):
         self.drawing_area.delete("edge")
+        
+        # Tạo tập hợp các cặp cạnh (u, v) để tra cứu nhanh
+        existing_edges = set()
+        for edge in self.danh_sach_canh:
+            existing_edges.add((edge['source'], edge['target']))
+
         for edge in list(self.danh_sach_canh):
             src = edge.get("source")
             tgt = edge.get("target")
             w = edge.get("weight")
+            
             src_center = self.get_node_center(src)
             tgt_center = self.get_node_center(tgt)
+            
             if src_center and tgt_center:
                 x1, y1 = src_center
                 x2, y2 = tgt_center
-                cf.tao_duong_noi(self.drawing_area, x1, y1, x2, y2, w, src, tgt)
+                
+                offset = 0
+                if (tgt, src) in existing_edges and src != tgt:
+                    offset = 15 # Offset khi có cạnh tồn tại
+
+                cf.tao_duong_noi(self.drawing_area, x1, y1, x2, y2, w, src, tgt, offset=offset)
+    
     #endregion
 
     #region Graph 
@@ -165,19 +180,8 @@ class Canvas(ctk.CTkFrame):
         if hasattr(self, 'info_frame'): self.info_frame.destroy()
 
     def thuc_hien_noi_dinh(self, ten_dinh_1, ten_dinh_2, trong_so):
-        def lay_toa_do_tam(ten_tag):
-            items = self.drawing_area.find_withtag(ten_tag)
-            for item in items:
-                if self.drawing_area.type(item) == "oval":
-                    x1, y1, x2, y2 = self.drawing_area.coords(item)
-                    return (x1 + x2) / 2, (y1 + y2) / 2
-            return None, None
-
-        x_start, y_start = lay_toa_do_tam(ten_dinh_1)
-        x_end, y_end = lay_toa_do_tam(ten_dinh_2)
-        if x_start is not None and x_end is not None:
-            cf.tao_duong_noi(self.drawing_area, x_start, y_start, x_end, y_end, trong_so, ten_dinh_1, ten_dinh_2)
-            self.danh_sach_canh.append({"source": ten_dinh_1, "target": ten_dinh_2, "weight": trong_so})
+        self.danh_sach_canh.append({"source": ten_dinh_1, "target": ten_dinh_2, "weight": trong_so})
+        self.redraw_edges() # Gọi redraw để tính toán lại toàn bộ offset
 
     def reset_mau_dinh(self, node_name):
         if node_name: cf.chinh_mau_dinh(self.drawing_area, node_name, "white")
@@ -200,9 +204,10 @@ class Canvas(ctk.CTkFrame):
 
     def to_mau_dinh(self, node_name, color):
         if node_name: cf.chinh_mau_dinh(self.drawing_area, node_name, color)
+    
     #endregion
 
-    #region Lưu/load dữ liệu file
+    #region lưu/load dữ liệu file
     def luu_du_lieu(self):
         data = cf.lay_du_lieu_do_thi(self.drawing_area)
         data["edges"] = self.danh_sach_canh
@@ -240,6 +245,7 @@ class Canvas(ctk.CTkFrame):
         for edge in data["edges"]:
             self.thuc_hien_noi_dinh(edge["source"], edge["target"], edge["weight"])
         messagebox.showinfo("Thành công", "Đã tải dữ liệu xong!")
+    
     #endregion
 
     #region INFO BOX
@@ -272,13 +278,12 @@ class Canvas(ctk.CTkFrame):
             ctk.CTkLabel(scroll_frame, text="(Trống)", font=("Montserrat", 10), text_color="grey").pack()
         else:
             for canh in danh_sach_canh:
-                # Format: A -> B: 10
                 text_canh = f"{canh['source']} -> {canh['target']}: {canh['weight']}"
                 ctk.CTkLabel(
                     scroll_frame, text=text_canh, 
                     font=("Montserrat", 11), text_color="black", anchor="w",
-                    height=20 # Giảm chiều cao để khít hơn
-                ).pack(fill="x", pady=0) # Không padding
+                    height=20 
+                ).pack(fill="x", pady=0) 
 
     def an_bang_thong_tin(self):
         if hasattr(self, 'info_frame') and self.info_frame:
